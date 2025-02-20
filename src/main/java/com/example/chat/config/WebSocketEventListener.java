@@ -12,26 +12,25 @@ import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
 @Component
 @RequiredArgsConstructor
-@Slf4j  // 사용자가 채팅을 떠날때 로그를 남기도록
+@Slf4j
 public class WebSocketEventListener {
 
-    private final SimpMessageSendingOperations messageTemplate;
+    private final SimpMessageSendingOperations messagingTemplate;
 
     @EventListener
-    public void handleWebSocketDisconnectListener(
-            SessionDisconnectEvent event
-    ) {
-        // 채팅을 나간것을 알림
+    public void handleWebSocketDisconnectListener(SessionDisconnectEvent event) {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
         String username = (String) headerAccessor.getSessionAttributes().get("username");
-        if (username != null){
-            log.info("User disconnected: {}", username);
+        String room = (String) headerAccessor.getSessionAttributes().get("room");
+
+        if (username != null && room != null) {
+            log.info("User disconnected: {} from room: {}", username, room);
             var chatMessage = ChatMessage.builder()
                     .type(MessageType.LEAVE)
                     .sender(username)
+                    .room(room)
                     .build();
-            messageTemplate.convertAndSend("/topic/public",chatMessage);
-
+            messagingTemplate.convertAndSend("/topic/room-" + room, chatMessage);
         }
     }
 }

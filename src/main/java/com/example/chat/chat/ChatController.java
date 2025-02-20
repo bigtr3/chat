@@ -2,32 +2,31 @@ package com.example.chat.chat;
 
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
+import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Controller;
 
 @Controller
 public class ChatController {
 
+    private final SimpMessageSendingOperations messagingTemplate;
 
-    // 메세지를 보냄
-    @MessageMapping("/chat.sendMessage")
-    @SendTo("/topic/public")
-    public ChatMessage sendMessage(
-        @Payload ChatMessage chatMessage
-    ) {
-        return chatMessage;
+    public ChatController(SimpMessageSendingOperations messagingTemplate) {
+        this.messagingTemplate = messagingTemplate;
     }
 
-    // 사용자가 채팅에 참가
+    @MessageMapping("/chat.sendMessage")
+    public void sendMessage(@Payload ChatMessage chatMessage) {
+        // /topic/room-{roomId} 형식으로 메시지를 보냄
+        messagingTemplate.convertAndSend("/topic/room-" + chatMessage.getRoom(), chatMessage);
+    }
+
     @MessageMapping("/chat.addUser")
-    @SendTo("/topic/public")
-    public ChatMessage addUser(
-            @Payload ChatMessage chatMessage,
-            SimpMessageHeaderAccessor headerAccessor
-    ) {
-        // Add username in web socket header
+    public void addUser(@Payload ChatMessage chatMessage, SimpMessageHeaderAccessor headerAccessor) {
+        // Add username and room in web socket session
         headerAccessor.getSessionAttributes().put("username", chatMessage.getSender());
-        return chatMessage;
+        headerAccessor.getSessionAttributes().put("room", chatMessage.getRoom());
+
+        messagingTemplate.convertAndSend("/topic/room-" + chatMessage.getRoom(), chatMessage);
     }
 }

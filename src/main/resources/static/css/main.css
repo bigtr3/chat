@@ -121,7 +121,6 @@ button.accent {
     margin-top: 10px;
 }
 
-
 #chat-page {
     position: relative;
     height: 100%;
@@ -151,60 +150,6 @@ button.accent {
 
 #chat-page #messageForm {
     padding: 20px;
-}
-
-#chat-page ul li {
-    line-height: 1.5rem;
-    padding: 10px 20px;
-    margin: 0;
-    border-bottom: 1px solid #f4f4f4;
-}
-
-#chat-page ul li p {
-    margin: 0;
-}
-
-#chat-page .event-message {
-    width: 100%;
-    text-align: center;
-    clear: both;
-}
-
-#chat-page .event-message p {
-    color: #777;
-    font-size: 14px;
-    word-wrap: break-word;
-}
-
-#chat-page .chat-message {
-    padding-left: 68px;
-    position: relative;
-}
-
-#chat-page .chat-message i {
-    position: absolute;
-    width: 42px;
-    height: 42px;
-    overflow: hidden;
-    left: 10px;
-    display: inline-block;
-    vertical-align: middle;
-    font-size: 18px;
-    line-height: 42px;
-    color: #fff;
-    text-align: center;
-    border-radius: 50%;
-    font-style: normal;
-    text-transform: uppercase;
-}
-
-#chat-page .chat-message span {
-    color: #333;
-    font-weight: 600;
-}
-
-#chat-page .chat-message p {
-    color: #43464b;
 }
 
 #messageForm .input-group input {
@@ -239,9 +184,7 @@ button.accent {
     width: 100%;
 }
 
-
 @media screen and (max-width: 730px) {
-
     .chat-container {
         margin-left: 10px;
         margin-right: 10px;
@@ -284,4 +227,105 @@ button.accent {
     .chat-header h2 {
         font-size: 1.1em;
     }
+}
+
+/* 채팅 메시지 스타일 */
+#chat-page .chat-message {
+    position: relative;
+    margin: 15px 0;
+    padding: 0;
+}
+
+/* 메시지 정렬 */
+#chat-page .chat-message.my-message {
+    padding-right: 68px;
+    text-align: right;
+}
+
+#chat-page .chat-message.other-message {
+    padding-left: 68px;
+    text-align: left;
+}
+
+/* 아바타 스타일 */
+#chat-page .chat-message i {
+    position: absolute;
+    width: 42px;
+    height: 42px;
+    font-size: 18px;
+    line-height: 42px;
+    color: #fff;
+    text-align: center;
+    border-radius: 50%;
+    font-style: normal;
+    text-transform: uppercase;
+}
+
+#chat-page .chat-message.my-message i {
+    right: 10px;
+}
+
+#chat-page .chat-message.other-message i {
+    left: 10px;
+}
+
+/* 사용자 이름 스타일 */
+#chat-page .chat-message span {
+    display: block;
+    margin: 0 0 5px;
+    font-size: 0.9em;
+    font-weight: 600;
+}
+
+#chat-page .chat-message.my-message span {
+    padding-right: 10px;
+    text-align: right;
+}
+
+#chat-page .chat-message.other-message span {
+    padding-left: 10px;
+    text-align: left;
+}
+
+/* 말풍선 스타일 */
+#chat-page .chat-message p {
+    display: inline-block;
+    margin: 0;
+    max-width: 70%;
+    padding: 10px 15px;
+    border-radius: 15px;
+    word-wrap: break-word;
+}
+
+#chat-page .chat-message.my-message p {
+    background: #007bff;
+    color: white;
+    border-bottom-right-radius: 5px;
+}
+
+#chat-page .chat-message.other-message p {
+    background: #e9ecef;
+    color: #333;
+    border-bottom-left-radius: 5px;
+}
+
+/* 이벤트 메시지 스타일 */
+#chat-page .event-message {
+    text-align: center;
+    margin: 10px 0;
+}
+
+#chat-page .event-message p {
+    display: inline-block;
+    padding: 5px 10px;
+    background: #f8f9fa;
+    border-radius: 15px;
+    color: #6c757d;
+    font-size: 0.9em;
+    margin: 0;
+}
+
+/* 메시지 영역 여백 */
+#messageArea {
+    padding: 20px !important;
 }
