@@ -19,15 +19,19 @@ function connect() {
         console.log('Connected: ' + frame);
 
         document.getElementById("chat-container").style.display = "block";
+        document.getElementById("roomName").innerText = room; // Set the room name in the UI
 
         stompClient.subscribe('/topic/room-' + room, function (message) {
-            showMessage(JSON.parse(message.body).sender + ": " + JSON.parse(message.body).content);
+            showMessage(JSON.parse(message.body)); // Pass the entire message object
         });
 
         stompClient.send("/app/chat.addUser",
             {},
             JSON.stringify({ sender: username, type: 'JOIN', room: room })
         );
+    }, function (error) { // Add error callback
+        console.error("WebSocket connection error:", error);
+        alert("Could not connect to WebSocket.  Check console for details.");
     });
 }
 
@@ -51,9 +55,34 @@ function sendMessage() {
 // Function to display messages
 function showMessage(message) {
     var messageArea = document.getElementById("messages");
-    var p = document.createElement("p");
-    p.appendChild(document.createTextNode(message));
-    messageArea.appendChild(p);
+    var messageElement = document.createElement("div");
+    messageElement.classList.add("message");
+
+    if (message.type === 'JOIN' || message.type === 'LEAVE') {
+        // Handle join/leave messages differently (e.g., display as system messages)
+        messageElement.textContent = message.sender + " " + (message.type === 'JOIN' ? "joined!" : "left!");
+        messageElement.classList.add("system-message"); // Add a class for styling
+    } else {
+        // Display regular chat messages
+        const senderElement = document.createElement("div");
+        senderElement.classList.add("sender");
+        senderElement.textContent = message.sender;
+
+        const contentElement = document.createElement("div");
+        contentElement.textContent = message.content;
+
+        messageElement.appendChild(senderElement);
+        messageElement.appendChild(contentElement);
+
+        if (message.sender === username) {
+            messageElement.classList.add("sent");
+        } else {
+            messageElement.classList.add("received");
+        }
+    }
+
+
+    messageArea.appendChild(messageElement);
     messageArea.scrollTop = messageArea.scrollHeight;
 }
 
@@ -75,13 +104,17 @@ function login() {
             username = email; // Or get the username from the login response if available
             document.getElementById("login-signup-container").style.display = "none";
             document.getElementById("chat-container").style.display = "block";
-            document.getElementById("loggedInUsername").innerText = username;
+
+            //Set Room Name
+            document.getElementById("roomName").innerText = room;
             console.log('Login successful. Access Token:', accessToken);
 
             // Store the token (e.g., in localStorage)
             localStorage.setItem('accessToken', accessToken);
             localStorage.setItem('username', username);
 
+            // The room input should be visible *before* connecting
+            // connect();  // Move connect() to be called after the user enters a room
         })
         .catch(error => {
             console.error('Login error:', error);
@@ -117,6 +150,8 @@ function signup() {
             alert('Signup failed. Please try again.');
         });
 }
+
+// Function to handle logout
 function logout() {
     // Clear the stored token and username
     localStorage.removeItem('accessToken');
@@ -139,6 +174,5 @@ window.onload = function() {
         username = storedUsername;
         document.getElementById("login-signup-container").style.display = "none";
         document.getElementById("chat-container").style.display = "block";
-        document.getElementById("loggedInUsername").innerText = username;
     }
 };

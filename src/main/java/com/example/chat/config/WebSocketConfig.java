@@ -30,7 +30,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
-                .setAllowedOrigins("http://localhost:8080", "http://localhost:3000") // Specify allowed origins
+                .setAllowedOrigins("http://localhost:8080", "http://localhost:3000") // VERY IMPORTANT: Specify allowed origins
                 .withSockJS();
     }
 
@@ -53,7 +53,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                         token = token.substring(7);
                         Authentication auth = tokenProvider.getAuthentication(token);
                         accessor.setUser(auth);
-                        log.info("WebSocket CONNECT command received from: {}", auth.getName()); // Log username
+                        log.info("WebSocket CONNECT command received from: {}", auth.getName());
                     } else {
                         log.warn("WebSocket CONNECT command without a valid token.");
                     }
@@ -65,3 +65,4 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         });
     }
 }
+

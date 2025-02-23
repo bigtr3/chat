@@ -5,6 +5,7 @@
     <link rel="stylesheet" href="css/main.css">
 </head>
 <body>
+
 <div id="login-signup-container">
     <h2>Login</h2>
     <input type="email" id="loginEmail" placeholder="Email"><br><br>
@@ -21,15 +22,17 @@
 </div>
 
 <div id="chat-container" style="display:none;">
-    <h1>Chat Room</h1>
-    <p>Logged in as: <span id="loggedInUsername"></span></p>
-    <input type="text" id="room" placeholder="Enter room name"/>
-    <button id="connect" onclick="connect()">Connect</button>
+    <h1>Chat Room - <span id="roomName"></span></h1>
     <div id="messages"></div>
-    <input type="text" id="message" placeholder="Enter your message"/>
-    <button id="send" onclick="sendMessage()">Send</button>
+    <div class="input-area">
+        <input type="text" id="message" placeholder="Type a message..."/>
+        <button id="send" onclick="sendMessage()">Send</button>
+    </div>
     <button id="logout" onclick="logout()">Logout</button>
+    <input type="text" id="room" placeholder="Enter room name" />
+    <button onclick="connect()">Connect</button>
 </div>
+
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
