@@ -28,7 +28,15 @@ public class WebSecurityConfig {
                 .formLogin(AbstractHttpConfigurer::disable)
                 .logout(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/api/user/signup", "/api/user/login").permitAll()
+                        .requestMatchers(
+                                "/api/user/signup",
+                                "/api/user/login",
+                                "/",                // 추가
+                                "/index.html",      // 추가
+                                "/css/**",          // 추가
+                                "/js/**",           // 추가
+                                "/ws/**"            // 추가
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(new JwtFilter(tokenprovider), UsernamePasswordAuthenticationFilter.class)
