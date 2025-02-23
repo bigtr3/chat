@@ -35,3 +35,4 @@ public class ChatController {
         log.info("User {} joined room {}", principal.getName(), chatMessage.getRoom());
     }
 }
+
