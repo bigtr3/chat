@@ -70,33 +70,51 @@ body {
     margin-bottom: 20px;
 }
 
+/* Fix for message container */
 .message {
     padding: 10px;
     border-radius: 20px;
     margin-bottom: 10px;
-    clear: both;
-    word-wrap: break-word;
     max-width: 70%;
+    position: relative;
+    word-wrap: break-word;
+    margin-top: 25px; /* Add space for the sender name */
+    clear: both; /* Ensure proper layout */
 }
 
+/* Fix for sent messages */
 .message.sent {
     background-color: #d4edda;
     color: #155724;
     float: right;
-    text-align: right;
 }
 
+/* Fix for received messages */
 .message.received {
     background-color: #cce5ff;
     color: #004085;
     float: left;
-    text-align: left;
 }
 
+/* Fix for sender name */
 .message .sender {
     font-weight: bold;
-    display: block;
-    margin-bottom: 5px;
+    font-size: 12px;
+    position: absolute;
+    top: -20px;
+    white-space: nowrap; /* Prevent name from wrapping */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+/* Position the sender name based on message type */
+.message.sent .sender {
+    right: 10px; /* Align name to the right for sent messages */
+}
+
+.message.received .sender {
+    left: 10px; /* Align name to the left for received messages */
 }
 
 .input-area {
@@ -139,4 +157,16 @@ body {
 
 #logout:hover {
     background-color: #c82333;
+}
+
+/* Fix for system messages */
+.message.system-message {
+    background-color: #f8f9fa;
+    color: #6c757d;
+    text-align: center;
+    float: none;
+    margin: 10px auto;
+    padding: 5px 10px;
+    border-radius: 10px;
+    max-width: 80%;
 }

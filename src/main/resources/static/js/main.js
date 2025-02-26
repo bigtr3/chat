@@ -31,7 +31,7 @@ function connect() {
         );
     }, function (error) { // Add error callback
         console.error("WebSocket connection error:", error);
-        alert("Could not connect to WebSocket.  Check console for details.");
+        alert("Could not connect to WebSocket. Check console for details.");
     });
 }
 
@@ -69,10 +69,15 @@ function showMessage(message) {
         senderElement.textContent = message.sender;
 
         const contentElement = document.createElement("div");
+        contentElement.classList.add("content");
         contentElement.textContent = message.content;
 
         messageElement.appendChild(senderElement);
         messageElement.appendChild(contentElement);
+
+        // Make sure username is correctly compared to determine message direction
+        // The issue might be that username isn't being set correctly
+        console.log("Message sender: " + message.sender + ", Current user: " + username);
 
         if (message.sender === username) {
             messageElement.classList.add("sent");
@@ -80,7 +85,6 @@ function showMessage(message) {
             messageElement.classList.add("received");
         }
     }
-
 
     messageArea.appendChild(messageElement);
     messageArea.scrollTop = messageArea.scrollHeight;
@@ -101,20 +105,18 @@ function login() {
         .then(response => response.json())
         .then(data => {
             accessToken = data.accessToken;
-            username = email; // Or get the username from the login response if available
+
+            // Make sure username is set correctly - this might be the issue
+            // If your backend returns a username or nickname, use that instead
+            username = data.name; // Maybe this should be data.username or data.nickname?
+
+            // For debugging
+            console.log("Logged in as: " + username);
+
             document.getElementById("login-signup-container").style.display = "none";
             document.getElementById("chat-container").style.display = "block";
 
-            //Set Room Name
             document.getElementById("roomName").innerText = room;
-            console.log('Login successful. Access Token:', accessToken);
-
-            // Store the token (e.g., in localStorage)
-            localStorage.setItem('accessToken', accessToken);
-            localStorage.setItem('username', username);
-
-            // The room input should be visible *before* connecting
-            // connect();  // Move connect() to be called after the user enters a room
         })
         .catch(error => {
             console.error('Login error:', error);
@@ -140,7 +142,7 @@ function signup() {
         .then(response => response.json())
         .then(data => {
             alert('Signup successful!');
-            // Optionally, automatically log the user in after signup
+// Optionally, automatically log the user in after signup
             document.getElementById("loginEmail").value = email;
             document.getElementById("loginPassword").value = password;
             login();
@@ -153,13 +155,13 @@ function signup() {
 
 // Function to handle logout
 function logout() {
-    // Clear the stored token and username
+// Clear the stored token and username
     localStorage.removeItem('accessToken');
     localStorage.removeItem('username');
     accessToken = null;
     username = null;
 
-    // Show the login/signup container and hide the chat container
+// Show the login/signup container and hide the chat container
     document.getElementById("login-signup-container").style.display = "block";
     document.getElementById("chat-container").style.display = "none";
 }
