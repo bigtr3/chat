@@ -8,9 +8,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class TokenDto {
     private String accessToken;
+    private String name;
 
     @Builder
-    public TokenDto(String accessToken) {
+    public TokenDto(String accessToken, String name) {
         this.accessToken = accessToken;
+        this.name = name;
     }
 }

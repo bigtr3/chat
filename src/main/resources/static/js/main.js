@@ -1,124 +1,180 @@
-'use strict';
-
-var usernamePage = document.querySelector('#username-page');
-var chatPage = document.querySelector('#chat-page');
-var usernameForm = document.querySelector('#usernameForm');
-var messageForm = document.querySelector('#messageForm');
-var messageInput = document.querySelector('#message');
-var messageArea = document.querySelector('#messageArea');
-var connectingElement = document.querySelector('.connecting');
-var roomIdDisplay = document.querySelector('#room-id');
-
 var stompClient = null;
 var username = null;
-var roomId = null;
+var room = null;
+var accessToken = null;
 
-var colors = [
-    '#2196F3', '#32c787', '#00BCD4', '#ff5652',
-    '#ffc107', '#ff85af', '#FF9800', '#39bbb0'
-];
+// Function to connect to WebSocket
+function connect() {
+    room = document.getElementById("room").value;
 
-function connect(event) {
-    username = document.querySelector('#name').value.trim();
-    roomId = document.querySelector('#room').value.trim();
-
-    if(username && roomId) {
-        usernamePage.classList.add('hidden');
-        chatPage.classList.remove('hidden');
-        roomIdDisplay.textContent = roomId;
-
-        var socket = new SockJS('/ws');
-        stompClient = Stomp.over(socket);
-
-        stompClient.connect({}, onConnected, onError);
+    if (!room) {
+        alert("Please enter a room name.");
+        return;
     }
-    event.preventDefault();
+
+    var socket = new SockJS('/ws');
+    stompClient = Stomp.over(socket);
+
+    stompClient.connect({'Authorization': 'Bearer ' + accessToken}, function (frame) {
+        console.log('Connected: ' + frame);
+
+        document.getElementById("chat-container").style.display = "block";
+        document.getElementById("roomName").innerText = room; // Set the room name in the UI
+
+        stompClient.subscribe('/topic/room-' + room, function (message) {
+            showMessage(JSON.parse(message.body)); // Pass the entire message object
+        });
+
+        stompClient.send("/app/chat.addUser",
+            {},
+            JSON.stringify({ sender: username, type: 'JOIN', room: room })
+        );
+    }, function (error) { // Add error callback
+        console.error("WebSocket connection error:", error);
+        alert("Could not connect to WebSocket. Check console for details.");
+    });
 }
 
-function onConnected() {
-    // Subscribe to the room topic
-    stompClient.subscribe('/topic/room-' + roomId, onMessageReceived);
+// Function to send a message
+function sendMessage() {
+    var messageContent = document.getElementById("message").value;
 
-    // Tell your username to the server
-    stompClient.send("/app/chat.addUser",
-        {},
-        JSON.stringify({sender: username, type: 'JOIN', room: roomId})
-    )
-
-    connectingElement.classList.add('hidden');
-}
-
-function onError(error) {
-    connectingElement.textContent = 'Could not connect to WebSocket server. Please refresh this page to try again!';
-    connectingElement.style.color = 'red';
-}
-
-function sendMessage(event) {
-    var messageContent = messageInput.value.trim();
-    if(messageContent && stompClient) {
+    if (messageContent && stompClient) {
         var chatMessage = {
             sender: username,
-            content: messageInput.value,
+            content: messageContent,
             type: 'CHAT',
-            room: roomId
+            room: room
         };
+
         stompClient.send("/app/chat.sendMessage", {}, JSON.stringify(chatMessage));
-        messageInput.value = '';
+        document.getElementById("message").value = "";
     }
-    event.preventDefault();
 }
 
-function onMessageReceived(payload) {
-    var message = JSON.parse(payload.body);
+// Function to display messages
+function showMessage(message) {
+    var messageArea = document.getElementById("messages");
+    var messageElement = document.createElement("div");
+    messageElement.classList.add("message");
 
-    var messageElement = document.createElement('li');
-
-    if(message.type === 'JOIN') {
-        messageElement.classList.add('event-message');
-        message.content = message.sender + ' joined!';
-    } else if (message.type === 'LEAVE') {
-        messageElement.classList.add('event-message');
-        message.content = message.sender + ' left!';
+    if (message.type === 'JOIN' || message.type === 'LEAVE') {
+        // Handle join/leave messages differently (e.g., display as system messages)
+        messageElement.textContent = message.sender + " " + (message.type === 'JOIN' ? "joined!" : "left!");
+        messageElement.classList.add("system-message"); // Add a class for styling
     } else {
-        messageElement.classList.add('chat-message');
+        // Display regular chat messages
+        const senderElement = document.createElement("div");
+        senderElement.classList.add("sender");
+        senderElement.textContent = message.sender;
 
-        if(message.sender === username) {
-            messageElement.classList.add('my-message');
+        const contentElement = document.createElement("div");
+        contentElement.classList.add("content");
+        contentElement.textContent = message.content;
+
+        messageElement.appendChild(senderElement);
+        messageElement.appendChild(contentElement);
+
+        // Make sure username is correctly compared to determine message direction
+        // The issue might be that username isn't being set correctly
+        console.log("Message sender: " + message.sender + ", Current user: " + username);
+
+        if (message.sender === username) {
+            messageElement.classList.add("sent");
         } else {
-            messageElement.classList.add('other-message');
+            messageElement.classList.add("received");
         }
-
-        var avatarElement = document.createElement('i');
-        var avatarText = document.createTextNode(message.sender[0]);
-        avatarElement.appendChild(avatarText);
-        avatarElement.style['background-color'] = getAvatarColor(message.sender);
-
-        messageElement.appendChild(avatarElement);
-
-        var usernameElement = document.createElement('span');
-        var usernameText = document.createTextNode(message.sender);
-        usernameElement.appendChild(usernameText);
-        messageElement.appendChild(usernameElement);
     }
-
-    var textElement = document.createElement('p');
-    var messageText = document.createTextNode(message.content);
-    textElement.appendChild(messageText);
-
-    messageElement.appendChild(textElement);
 
     messageArea.appendChild(messageElement);
     messageArea.scrollTop = messageArea.scrollHeight;
 }
 
-function getAvatarColor(messageSender) {
-    var hash = 0;
-    for (var i = 0; i < messageSender.length; i++) {
-        hash = 31 * hash + messageSender.charCodeAt(i);
-    }
-    var index = Math.abs(hash % colors.length);
-    return colors[index];
+// Function to handle user login
+function login() {
+    const email = document.getElementById("loginEmail").value;
+    const password = document.getElementById("loginPassword").value;
+
+    fetch('/api/user/login', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email: email, password: password })
+    })
+        .then(response => response.json())
+        .then(data => {
+            accessToken = data.accessToken;
+
+            // Make sure username is set correctly - this might be the issue
+            // If your backend returns a username or nickname, use that instead
+            username = data.name; // Maybe this should be data.username or data.nickname?
+
+            // For debugging
+            console.log("Logged in as: " + username);
+
+            document.getElementById("login-signup-container").style.display = "none";
+            document.getElementById("chat-container").style.display = "block";
+
+            document.getElementById("roomName").innerText = room;
+        })
+        .catch(error => {
+            console.error('Login error:', error);
+            alert('Login failed. Check your credentials.');
+        });
 }
 
-usernameForm.addEventListener('submit', connect, true)
-messageForm.addEventListener('submit', sendMessage, true)
+// Function to handle user signup
+function signup() {
+    const email = document.getElementById("signupEmail").value;
+    const password = document.getElementById("signupPassword").value;
+    const nickname = document.getElementById("signupNickname").value;
+    const phoneNumber = document.getElementById("signupPhoneNumber").value;
+    const name = document.getElementById("signupName").value;
+
+    fetch('/api/user/signup', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email: email, password: password, nickname: nickname, phoneNumber: phoneNumber, name: name })
+    })
+        .then(response => response.json())
+        .then(data => {
+            alert('Signup successful!');
+// Optionally, automatically log the user in after signup
+            document.getElementById("loginEmail").value = email;
+            document.getElementById("loginPassword").value = password;
+            login();
+        })
+        .catch(error => {
+            console.error('Signup error:', error);
+            alert('Signup failed. Please try again.');
+        });
+}
+
+// Function to handle logout
+function logout() {
+// Clear the stored token and username
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('username');
+    accessToken = null;
+    username = null;
+
+// Show the login/signup container and hide the chat container
+    document.getElementById("login-signup-container").style.display = "block";
+    document.getElementById("chat-container").style.display = "none";
+}
+
+// On page load, check if there's a token in localStorage
+window.onload = function() {
+    const storedToken = localStorage.getItem('accessToken');
+    const storedUsername = localStorage.getItem('username');
+
+    if (storedToken && storedUsername) {
+        accessToken = storedToken;
+        username = storedUsername;
+        document.getElementById("login-signup-container").style.display = "none";
+        document.getElementById("chat-container").style.display = "block";
+    }
+};

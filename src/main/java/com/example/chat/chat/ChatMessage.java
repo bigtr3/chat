@@ -8,10 +8,8 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 public class ChatMessage {
-
     private String content;
     private String sender;
     private MessageType type;
-    private String room;  // 채팅방 식별자 추가
-
+    private String room;
 }

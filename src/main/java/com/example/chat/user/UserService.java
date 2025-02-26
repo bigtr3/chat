@@ -52,9 +52,11 @@ public class UserService {
         }
 
         String accessToken = tokenProvider.createAccessToken(user);
+        String name = user.getName();
 
         return TokenDto.builder()
                 .accessToken(accessToken)
+                .name(name)
                 .build();
     }
 
